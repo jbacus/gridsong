@@ -370,7 +370,7 @@ TN.Menu = class {
       { label: 'SaveAs Default', open: () => this.confirm('SaveAs Default', () => { e.saveDefault(); this.message(['', '  Saving...', '', ''], null, 600); }) },
       { label: 'SD Format', open: () => this.confirm('SD Format', () => { e.saveFiles({}); this.message(['', '  Formatting...', '', ''], null, 800); }, { sub: ' (browser storage)' }) },
       { label: 'Owner Name', open: () => ({ type: 'name', title: 'Input Owner Name', text: e.state.ownerName, cur: 0, done: (t) => { e.state.ownerName = t; } }) },
-      { label: 'Version Check', open: () => ({ type: 'message', lines: ['Version Check', ' TENORI-ON Ver.1.00', ' web simulation', ''] }) },
+      { label: 'Version Check', open: () => ({ type: 'message', lines: ['Version Check', ' GRIDSONG Ver.1.00', ' web simulation', ''] }) },
       { label: 'Factory Reset', open: () => this.confirm('Factory Reset', () => { e.factoryReset(); this.close(); }) },
     ]);
   }
@@ -420,8 +420,8 @@ TN.Menu = class {
     if (op === 'Save') { this.saveAs(kind, exporters[kind]()); return; }
     if (op === 'Export') {
       const names = e.fileList(kind);
-      if (kind === 'song') { if (!names.length) { this.message(['SD Card Error!', ' No files.', '', ''], null); return; } this.push(this.list(title + ' Export', names.map((n) => ({ label: n, run: () => { this.ui.download(n + '.tnr-song.json', e.fileLoad(kind, n)); this.message(['', '  Exported', '', ''], null, 800); } })))); }
-      else { this.ui.download(this.defaultName(kind) + '.tnr-' + kind + '.json', exporters[kind]()); this.message(['', '  Exported', ' (download)', ''], null, 900); }
+      if (kind === 'song') { if (!names.length) { this.message(['SD Card Error!', ' No files.', '', ''], null); return; } this.push(this.list(title + ' Export', names.map((n) => ({ label: n, run: () => { this.ui.download(n + '.gridsong-song.json', e.fileLoad(kind, n)); this.message(['', '  Exported', '', ''], null, 800); } })))); }
+      else { this.ui.download(this.defaultName(kind) + '.gridsong-' + kind + '.json', exporters[kind]()); this.message(['', '  Exported', ' (download)', ''], null, 900); }
       return;
     }
     if (op === 'Import') { this.ui.pickFile('.json,application/json', async (file) => { try { const d = JSON.parse(await file.text()); importers[kind](d); this.message(['', '  Loading...', '', ''], null, 600); } catch (err) { this.message(['SD Card Error!', ' The File is Broken.', '', ''], null); } }); return; }

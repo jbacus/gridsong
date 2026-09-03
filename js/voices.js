@@ -1,9 +1,9 @@
 'use strict';
 (function () {
 // Voice list, defaults, scales and synth patch generation.
-// Voice names and per-layer defaults are transcribed from the TENORI-ON manual
+// Voice names and per-layer defaults follow the Yamaha TENORI-ON owner's manual
 // (Voice List p.119-121, Data Storage table p.39-41). The synthesis itself is an
-// original Web Audio approximation: the real instrument plays Yamaha samples.
+// original Web Audio approximation: the instrument that inspired this project plays samples.
 const TN = window.TN || (window.TN = {});
 
 TN.VOICE_NAMES = [

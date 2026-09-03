@@ -11,8 +11,8 @@ body { background: var(--page); color: var(--ink); font-family: "Helvetica Neue"
 
 .device { background: var(--body); border: 4px solid var(--ink); border-radius: 40px; padding: 22px 22px 18px; width: min(96vw, 1040px);
   box-shadow: 0 30px 60px rgba(0,0,0,.25), inset 0 0 0 3px #fff, inset 0 0 40px rgba(0,0,0,.05); position: relative; }
-.device::after { content: "TENORI-ON"; position: absolute; right: 44px; top: 16px; font-size: 11px; letter-spacing: .32em; color: #777; font-weight: 700; }
-.device::before { content: "TNR-W"; position: absolute; left: 44px; top: 16px; font-size: 10px; letter-spacing: .2em; color: #999; font-weight: 700; }
+.device::after { content: "GRIDSONG"; position: absolute; right: 44px; top: 16px; font-size: 11px; letter-spacing: .32em; color: #777; font-weight: 700; }
+.device::before { content: "GS-16"; position: absolute; left: 44px; top: 16px; font-size: 10px; letter-spacing: .2em; color: #999; font-weight: 700; }
 
 .top { display: flex; justify-content: center; margin-bottom: 14px; }
 .lcd { background: var(--lcd-bg); color: var(--lcd-ink); border: 3px solid var(--ink); border-radius: 8px; padding: 8px 14px;

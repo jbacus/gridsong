@@ -292,7 +292,7 @@
     if (engine.playback) { const s = engine.playback.song; return ['Song:', ' "' + (s.name || 'SONG') + '"', ' ' + (s.composer || 'NO NAME'), ' PLAY ' + fmtTime(Date.now() - engine.playback.start) + '  [OK]stop']; }
     if (engine.powerSave) return ['', ' Power Save...', '', ''];
     if (engine.interior) return [engine.interior.type, engine.override ? ' "DEMO"' : '', ' ' + st.ownerName, ' ' + now.toLocaleTimeString('en-GB')];
-    const l1 = 'TENORI-ON' + (ui.audioReady ? '        [AC]' : '   (tap: sound)');
+    const l1 = 'GRIDSONG ' + (ui.audioReady ? '        [AC]' : '   (tap: sound)');
     const l2 = ' L' + pad2(i + 1) + '-' + TN.MODE_LABEL[TN.MODE_OF_LAYER[i]].padEnd(7) + ' B' + pad2(st.currentBlock + 1);
     const l3 = ' ' + TN.voiceLabel(...st.layers[i].instrument);
     const clock = engine.recording ? 'REC ' + fmtTime(Date.now() - engine.recording.startAt) : now.toLocaleTimeString('en-GB');
@@ -356,6 +356,6 @@
 
   // ---- boot ---------------------------------------------------------------------------------------------
   engine.loadDefault(); engine.resetRuntime(); engine.start();
-  window.tenori = { engine, audio, menu, ui };
+  window.gridsong = { engine, audio, menu, ui };
   requestAnimationFrame(frame);
 })();

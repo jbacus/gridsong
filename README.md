@@ -1,16 +1,18 @@
-# TENORI-ON web simulator
+# Gridsong
 
-A browser simulation of the Yamaha TENORI-ON (TNR-W), built from the owner's manual.
+A browser matrix sequencer inspired by the Yamaha TENORI-ON, built by reading its owner's manual and recreating the behaviour it describes.
 No build step and no dependencies: open `index.html`, or visit the GitHub Pages deployment.
 
-## What is simulated
+Gridsong is an independent project. It is not affiliated with, endorsed by, or supported by Yamaha Corporation. TENORI-ON is a trademark of Yamaha Corporation, used here only to identify the instrument that inspired this one. No Yamaha code, samples, artwork or documentation is included.
+
+## What it does
 
 - **16 x 16 LED matrix**, 16 layers, 16 blocks. Layers 1-7 Score, 8-11 Random, 12-13 Draw, 14 Bounce, 15 Push, 16 Solo, exactly as the hardware assigns them.
-- **All six performance modes**, including loop points, the travelling light and rotation of Random mode, Draw-mode gesture looping, Bounce balls, Push-mode evolving tones with latch-on-hold, and Solo repeats with the vertical axis as repeat interval (quantized to the score clock when Quantize is on).
-- **Function buttons L1-L5 and R1-R5** with the LED-matrix setting displays from the manual: instrument crosshair, sound length, octave, loop point / rotation, loop speed, layer, tempo, transpose, per-layer volume bars, and block select with the dim / medium / bright copy-layer / copy-block gesture.
+- **The six performance modes of the original**, including loop points, the travelling light and rotation of Random mode, Draw-mode gesture looping, Bounce balls, Push-mode evolving tones with latch-on-hold, and Solo repeats with the vertical axis as repeat interval (quantized to the score clock when Quantize is on).
+- **Function buttons L1-L5 and R1-R5** with LED-matrix setting displays: instrument crosshair, sound length, octave, loop point / rotation, loop speed, layer, tempo, transpose, per-layer volume bars, and block select with the dim / medium / bright copy-layer / copy-block gesture.
 - **LCD and jog dial menus**: Play, Layer, Edit (with UNDO), Preference, File, Effect, Interior, System and Recording menus with the manual's parameter ranges and defaults.
 - **Nine master scales** (Ionian through Locrian, Chromatic, Okinawa) with the manual's note assignments; transpose -7..+8; octave -5..+5; master tuning.
-- **256 voice slots** named after the manual's voice list, synthesized with Web Audio. Layer 7 voices are 16-piece drum kits, one instrument per row. Layer 15 voices evolve over time for Push mode. User1-3 load a WAV/AIFF/MP3 from your computer.
+- **256 voice slots** following the original voice list, synthesized with Web Audio. Layer 7 voices are 16-piece drum kits, one instrument per row. Layer 15 voices evolve over time for Push mode. User1-3 load a WAV/AIFF/MP3 from your computer.
 - **Reverb** (HALL, ROOM, STAGE, PLATE) and **chorus / flanger** sends, 32-note polyphony with voice stealing.
 - **Light animations** per layer: Simple, Circle, Square, Diamond, Cross, Plus, expand or shrink, with the manual's per-layer defaults.
 - **Interior mode**: clock on the matrix with the seconds dot running around the outer LEDs and the once-per-second expanding square, demo song playback, saver timer, power save, hourly time signal and alarm.
@@ -28,9 +30,9 @@ No build step and no dependencies: open `index.html`, or visit the GitHub Pages 
 | Mode labels | Jump to the next layer of that mode. |
 | `?` | Quick guide. |
 
-## Deviations from the hardware
+## Deviations from the original instrument
 
-- Sounds are original Web Audio patches, not Yamaha's samples. Names match the voice list; timbres are impressions.
+- Sounds are original Web Audio patches, not samples. Names follow the voice list; timbres are impressions.
 - Solo mode repeat intervals double every two rows (with dotted values between) from half a step at the top to 64 steps near the bottom. The manual describes doubling every row, which would leave most of the column silent at usable tempos.
 - Random-mode single notes repeat every four steps; with two or more notes the light travels one LED per step, so timing depends on distance as the manual describes.
 - MIDI in / out, Master/Slave sync and the SD card are not available in a browser. Import / Export JSON files instead.
