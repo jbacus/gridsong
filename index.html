@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TENORI-ON Simulator</title>
+<link rel="stylesheet" href="css/tenori.css?v=1">
+</head>
+<body>
+<div id="app">
+  <div class="device">
+    <div class="top"><div class="lcd" id="lcd"></div></div>
+    <div class="main">
+      <div class="side">
+        <button class="fn" data-fn="L1">L1<small>INST</small></button>
+        <button class="fn" data-fn="L2">L2<small>LEN</small></button>
+        <button class="fn" data-fn="L3">L3<small>OCT</small></button>
+        <button class="fn" data-fn="L4">L4<small>LOOP</small></button>
+        <button class="fn" data-fn="L5">L5<small>SPD</small></button>
+        <div class="gap"></div>
+        <div class="modes" id="modes"></div>
+      </div>
+      <div class="matrix-wrap"><canvas id="matrix" width="800" height="800"></canvas></div>
+      <div class="side">
+        <button class="fn" data-fn="R1">R1<small>LAYER</small></button>
+        <button class="fn" data-fn="R2">R2<small>TEMPO</small></button>
+        <button class="fn" data-fn="R3">R3<small>TRANS</small></button>
+        <button class="fn" data-fn="R4">R4<small>VOL</small></button>
+        <button class="fn" data-fn="R5">R5<small>BLOCK</small></button>
+        <div class="gap"></div>
+        <div class="power"><div class="light" id="powerLight"></div>POWER</div>
+      </div>
+    </div>
+    <div class="bottom">
+      <div></div>
+      <div class="transport">
+        <div><div class="jog" id="jog" title="Jog dial: drag, scroll, or arrow keys"><div class="knob" id="knob"></div><div class="label">JOG</div></div><div class="jog-caption">NAVIGATE</div></div>
+        <button class="round" id="btnOk">OK</button>
+        <button class="round" id="btnCancel">CANCEL</button>
+        <button class="round clear" id="btnClear">CLEAR</button>
+      </div>
+      <div></div>
+    </div>
+    <div class="hint" id="hint"></div>
+    <button class="help-btn" id="btnHelp" title="Quick guide">?</button>
+  </div>
+  <input type="file" id="fileInput" class="hidden-input" accept="audio/*,.wav,.aif,.aiff,.mp3,.ogg,.json">
+</div>
+<div class="overlay" id="help" hidden>
+  <div class="card">
+    <button class="close" id="btnHelpClose">CLOSE</button>
+    <h1>TENORI-ON</h1>
+    <div>A browser simulation of the Yamaha TENORI-ON (TNR-W), built from the owner's manual. Sixteen layers, sixteen blocks, six performance modes, and the ten function buttons. Sounds are synthesized with Web Audio, so voices are impressions of the originals rather than the Yamaha samples.</div>
+    <h2>Performance modes (fixed per layer)</h2>
+    <table>
+      <tr><td>Score (L1-7)</td><td>Vertical = pitch, horizontal = looped time. Short press to audition, hold to enter or remove a note. OK pauses; while paused, press an LED to move the loop indicator.</td></tr>
+      <tr><td>Random (L8-11)</td><td>Notes play in the order entered; a light travels from note to note, so timing depends on distance. Hold L4 and stroke a circle to spin the shape.</td></tr>
+      <tr><td>Draw (L12-13)</td><td>Press or drag; whatever you play is recorded into a 16-step loop and repeated. CLEAR wipes the layer.</td></tr>
+      <tr><td>Bounce (L14)</td><td>Press an LED and a light drops and bounces; the note sounds at the bottom row. Higher entry = longer interval. Press the bottom LED to stop a column.</td></tr>
+      <tr><td>Push (L15)</td><td>Hold an LED and the tone evolves; the flashing grows. Hold longer than about half a second and it keeps sounding after release. Press it again to stop.</td></tr>
+      <tr><td>Solo (L16)</td><td>Hold an LED to repeat a note. Horizontal = pitch, vertical = repeat interval (top is fastest, bottom plays once). Slide to change.</td></tr>
+    </table>
+    <h2>Function buttons (click to latch, or hold a key)</h2>
+    <table>
+      <tr><td>L1 Instrument</td><td>Crosshair on the 16x16 voice grid. <span class="kbd">Q</span></td></tr>
+      <tr><td>L2 Sound length</td><td>Column sets gate time, 50 ms to 9990 ms. <span class="kbd">W</span></td></tr>
+      <tr><td>L3 Octave</td><td>Row sets octave shift, -5 to +5 (8th row = 0). <span class="kbd">E</span></td></tr>
+      <tr><td>L4 Loop point / Rotation</td><td>Score: upper half sets TOP, lower half sets END. Random: stroke to rotate. <span class="kbd">R</span></td></tr>
+      <tr><td>L5 Loop speed</td><td>Leftmost four columns: quarter, eighth, sixteenth, thirty-second notes. <span class="kbd">T</span></td></tr>
+      <tr><td>R1 Layer</td><td>Row selects layer (bottom = 1). <span class="kbd">Y</span></td></tr>
+      <tr><td>R2 Tempo</td><td>Column sets 50-200 BPM; jog for 40-240. <span class="kbd">U</span></td></tr>
+      <tr><td>R3 Transpose</td><td>Row sets -7 to +8 semitones. <span class="kbd">I</span></td></tr>
+      <tr><td>R4 Volume</td><td>Each row is a layer; slide along it. Jog sets master volume. <span class="kbd">O</span></td></tr>
+      <tr><td>R5 Block</td><td>Column selects block. Tap the bottom LED of the lit column to cycle dim / medium / bright, then tap a destination column to move / copy layer / copy all layers. <span class="kbd">P</span></td></tr>
+    </table>
+    <h2>Other controls</h2>
+    <table>
+      <tr><td>Jog dial</td><td>Drag, mouse wheel, or <span class="kbd">&uarr;</span> <span class="kbd">&darr;</span>. Turn it from the status display to open the menu. Also fine-adjusts a held function button's value.</td></tr>
+      <tr><td>OK</td><td>Pause / resume on the status display, confirm in menus. <span class="kbd">Enter</span> or <span class="kbd">Space</span></td></tr>
+      <tr><td>CANCEL</td><td>Back out of menus, release a latched function button. <span class="kbd">Esc</span></td></tr>
+      <tr><td>CLEAR</td><td>Short press clears the layer; hold to clear all blocks. <span class="kbd">Backspace</span></td></tr>
+      <tr><td>Menus</td><td>Play, Layer, Edit, Preference, File, Effect, Interior, System, Recording. Files save to this browser instead of an SD card; the File menu also imports and exports JSON and loads a sample into User1-3.</td></tr>
+    </table>
+  </div>
+</div>
+<script src="js/voices.js?v=1"></script>
+<script src="js/audio.js?v=1"></script>
+<script src="js/engine.js?v=1"></script>
+<script src="js/menu.js?v=1"></script>
+<script src="js/ui.js?v=1"></script>
+</body>
+</html>
