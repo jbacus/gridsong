@@ -22,15 +22,15 @@
     { sel: '[data-fn=L3]', side: 'left', k: 'L3', text: 'Changing octaves', sub: '−5 to +5' },
     { sel: '[data-fn=L4]', side: 'left', k: 'L4', text: 'Changing loop points', sub: 'Rotation in Random mode' },
     { sel: '[data-fn=L5]', side: 'left', k: 'L5', text: 'Changing loop speed', sub: 'Quarter to thirty-second notes' },
-    { sel: '#modes', side: 'left', text: 'Mode shortcuts', sub: 'Jump between layers by mode · web only', web: true },
-    { sel: '#jog', side: 'left', text: 'Jog scroller', sub: 'Drag up or down, or scroll: menus and values' },
+    { sel: '#modes', side: 'left', text: 'Mode shortcuts', sub: 'Next layer of that mode · web only', web: true },
+    { sel: '#jog', side: 'left', text: 'Jog scroller', sub: 'Drag or scroll: menus and values' },
     { sel: '[data-fn=R1]', side: 'right', k: 'R1', text: 'Switching layers', sub: 'Sixteen layers, one mode each' },
     { sel: '[data-fn=R2]', side: 'right', k: 'R2', text: 'Changing tempo', sub: '50 to 200 BPM, jog for 40 to 240' },
     { sel: '[data-fn=R3]', side: 'right', k: 'R3', text: 'Transposition', sub: '−7 to +8 semitones' },
     { sel: '[data-fn=R4]', side: 'right', k: 'R4', text: 'Changing the layer volume' },
     { sel: '[data-fn=R5]', side: 'right', k: 'R5', text: 'Switching blocks', sub: 'Sixteen blocks of sixteen layers' },
     { sel: '#matrixWrap', side: 'right', text: 'LED buttons', sub: '16 × 16 matrix', at: 0.62 },
-    { sel: '#btnPower', side: 'right', text: 'Power', sub: 'Press to switch the instrument off and on' },
+    { sel: '#btnPower', side: 'right', text: 'Power', sub: 'Switch the instrument off and on' },
     { sel: '#btnOk', side: 'right', k: 'OK', text: 'Play, pause, confirm' },
     { sel: '#btnCancel', side: 'right', k: 'CANCEL', text: 'Back, release a button' },
     { sel: '#btnClear', side: 'top', k: 'CLEAR', text: 'Clear layer · hold for all' },
@@ -56,33 +56,40 @@
   function drawLabels() {
     while (svg.firstChild) svg.removeChild(svg.firstChild);
     const S = stage.getBoundingClientRect(); const cs = getComputedStyle(stage);
-    const padL = parseFloat(cs.paddingLeft), padR = parseFloat(cs.paddingRight), padT = parseFloat(cs.paddingTop), padB = parseFloat(cs.paddingBottom);
+    const padT = parseFloat(cs.paddingTop), padB = parseFloat(cs.paddingBottom);
     svg.setAttribute('viewBox', '0 0 ' + S.width + ' ' + S.height);
     const rel = (el) => { const r = el.getBoundingClientRect(); return { x: r.left - S.left, y: r.top - S.top, w: r.width, h: r.height }; };
-    const GAP = 26; // label height plus breathing room when leaders have to fan out
+    const D = rel(device);
+    // Witness lines, drawing-office style: from the control a straight leader runs to a common vertical
+    // "knee" line just outside the chassis, then the label's underline continues horizontally from it.
+    // Labels that would overlap are fanned apart symmetrically about their controls, so leaders never cross.
+    const GAP = 8;
     ['left', 'right'].forEach((side) => {
-      const items = CALLOUTS.filter((c) => c.side === side).map((c) => { const r = rel(c.el); return { c, r, ty: r.y + r.h * (c.at || 0.5) }; }).sort((a, b) => a.ty - b.ty);
+      const kx = side === 'left' ? D.x - 26 : D.x + D.w + 26;
+      const items = CALLOUTS.filter((c) => c.side === side).map((c) => {
+        const target = c.el.querySelector('.cap, .light') || c.el; const r = rel(target);
+        return { c, h: c.label.offsetHeight, ty: r.y + r.h * (c.at || 0.5), tx: side === 'left' ? r.x - 3 : r.x + r.w + 3 };
+      }).sort((a, b) => a.ty - b.ty);
+      if (!items.length) return;
+      // 1. push down to clear overlaps, 2. recentre the whole fan on the controls, 3. keep it inside the stage.
       let last = -Infinity;
+      items.forEach((it) => { it.ly = Math.max(it.ty, last + GAP + it.h); last = it.ly; });
+      const drift = items.reduce((a, it) => a + (it.ly - it.ty), 0) / items.length;
+      items.forEach((it) => { it.ly -= drift; });
+      const top = items[0].ly - items[0].h, bottom = items[items.length - 1].ly;
+      const shift = top < 4 ? 4 - top : bottom > S.height - 4 ? S.height - 4 - bottom : 0;
+      items.forEach((it) => { it.ly += shift; });
       items.forEach((it) => {
-        const lh = it.c.label.offsetHeight;
-        let ly = it.ty; if (ly - lh < last + 6) ly = last + 6 + lh; last = ly; it.ly = ly;
-      });
-      // If the fan pushed labels below the stage, shift the whole column up as one.
-      const over = last - (S.height - 4); if (over > 0) items.forEach((it) => { it.ly -= over; });
-      items.forEach((it) => {
-        const { c, r, ty } = it; const ly = it.ly;
-        const tx = side === 'left' ? r.x - 4 : r.x + r.w + 4;
-        const lx = side === 'left' ? padL - 22 : S.width - padR + 22;   // end of the label underline
-        const bx = side === 'left' ? tx - 30 : tx + 30;                   // elbow
-        c.label.style.top = (ly - c.label.offsetHeight) + 'px';
-        if (side === 'left') { c.label.style.left = ''; c.label.style.right = (S.width - lx) + 'px'; } else { c.label.style.right = ''; c.label.style.left = lx + 'px'; }
-        line(Math.abs(ly - ty) < 0.5 ? [[lx, ly], [tx, ty]] : [[lx, ly], [bx, ly], [tx, ty]], c.web);
+        const { c, tx, ty, ly } = it; const lw = c.label.offsetWidth;
+        const lx = side === 'left' ? kx - lw : kx;        // the underline spans the label, ending at the knee
+        c.label.style.top = (ly - it.h) + 'px'; c.label.style.left = lx + 'px'; c.label.style.right = '';
+        line(Math.abs(ly - ty) < 0.5 ? [[kx, ly], [tx, ty]] : [[lx, ly], [kx, ly], [tx, ty]], c.web);
         dot(tx, ty);
       });
     });
     CALLOUTS.filter((c) => c.side === 'top' || c.side === 'bottom').forEach((c) => {
-      const r = rel(c.el); const tx = r.x + r.w / 2; const top = c.side === 'top';
-      const ty = top ? r.y - 4 : r.y + r.h + 4;
+      const target = c.el.querySelector('.cap') || c.el; const r = rel(target); const tx = r.x + r.w / 2; const top = c.side === 'top';
+      const ty = top ? r.y - 3 : r.y + r.h + 3;
       const lh = c.label.offsetHeight, lw = c.label.offsetWidth;
       const ly = top ? padT - 26 : S.height - padB + 26 + lh;  // underline y
       c.label.style.left = (tx - lw / 2) + 'px'; c.label.style.right = ''; c.label.style.top = (ly - lh) + 'px';

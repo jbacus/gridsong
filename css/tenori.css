@@ -31,16 +31,18 @@ button { font: inherit; color: inherit; }
 /* ---- stage: device plus the pulled-out labels around it ------------------------------------------ */
 #stage { position: relative; width: 100%; display: flex; justify-content: center; padding: 0; }
 html.labels #stage { padding: 72px var(--label-pad, 290px) 86px; }
-#leaders { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
-#labels { position: absolute; inset: 0; pointer-events: none; }
+#leaders { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; z-index: 2; }
+#labels { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
 html:not(.labels) #leaders, html:not(.labels) #labels { display: none; }
 .callout { position: absolute; font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--fg); white-space: nowrap; line-height: 1.2;
   padding: 0 0 5px; border-bottom: 1px solid var(--hi); }
 .callout.c-left { text-align: right; }
 .callout .k { color: var(--hi); margin-right: .5em; }
-.callout .sub { display: block; font-size: 11px; font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--muted); margin-top: 3px; }
+.callout .sub { display: block; font-size: 11px; font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--muted); margin-top: 3px; white-space: normal; max-width: 200px; line-height: 1.3; }
+.callout.c-left .sub { margin-left: auto; }
+html.embed .callout .sub { display: none; }  /* in a small frame the fan stays tight; the standalone page carries the detail */
 .callout.c-web { border-bottom-style: dashed; }
-.device-wrap { transform-origin: top center; }
+.device-wrap { transform-origin: top center; position: relative; z-index: 1; }
 
 /* ---- the chassis ----------------------------------------------------------------------------- */
 .device { width: var(--device-w); position: relative; padding: 16px 20px 18px; border-radius: 28px;
