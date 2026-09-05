@@ -108,6 +108,7 @@ canvas#matrix { display: block; width: 100%; aspect-ratio: 1 / 1; touch-action: 
 .opt:hover { opacity: .5; }
 .opt.on, .opt[aria-pressed="true"] { color: var(--fg); text-decoration: underline; text-underline-offset: 3px; }
 html.narrow .switch.labels { display: none; }
+html.hosted-theme .switch.theme { display: none; }
 .kbd { display: inline-block; border: 1px solid var(--line); padding: 0 4px; font-size: 11px; font-family: var(--font); color: var(--fg); margin: 0 1px; line-height: 1.4; }
 
 /* ---- help overlay ------------------------------------------------------------------------------ */

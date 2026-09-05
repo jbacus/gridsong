@@ -29,7 +29,7 @@ Gridsong is an independent project. It is not affiliated with, endorsed by, or s
 | OK / CANCEL / CLEAR | Buttons, or `Enter`/`Space`, `Esc`, `Backspace` (hold to clear all blocks). |
 | Mode labels | Jump to the next layer of that mode. |
 | Help | Toggles the pulled-out labels with leader lines around the chassis, in the manner of the hardware overview drawing. On by default (off when embedded); the chassis scales down to make room. `?` opens the full quick guide. |
-| Light / Dark | Follows the system preference, or `?theme=light` / `?theme=dark` in the URL. The switch under the device stores the choice. |
+| Light / Dark | Follows the system preference, or `?theme=light` / `?theme=dark` in the URL. The switch under the device stores the choice. A host page can drive it with `postMessage({ type: 'commonplace.theme', theme: 'dark' })`, which also hides the switch. |
 | `?` | Quick guide. |
 
 ## Appearance
