@@ -125,6 +125,12 @@
     html.classList.toggle('theme-dark', b.dataset.theme === 'dark'); try { localStorage.setItem('commonplace.theme', b.dataset.theme); } catch (e) { /* ignore */ } syncTheme();
   }));
   syncTheme();
+  // Embedded: the host page can drive the theme with postMessage({ type: 'commonplace.theme', theme: 'dark' | 'light' }).
+  // The portfolio does this on iframe load and whenever its Light / Dark switch is used; a hosted theme hides our own switch.
+  window.addEventListener('message', (ev) => {
+    const d = ev.data; if (!d || d.type !== 'commonplace.theme' || (d.theme !== 'light' && d.theme !== 'dark')) return;
+    html.classList.toggle('theme-dark', d.theme === 'dark'); html.classList.add('hosted-theme'); syncTheme();
+  });
   layout();
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(schedule);
   setTimeout(schedule, 300);
