@@ -28,9 +28,9 @@ Gridsong is an independent project. It is not affiliated with, endorsed by, or s
 | Jog dial | An up/down scroller: drag it, use the scroll wheel, or the arrow keys. Move it on the status display to open the menu; it also fine-adjusts a held function button. |
 | OK / CANCEL / CLEAR | Buttons, or `Enter`/`Space`, `Esc`, `Backspace` (hold to clear all blocks). |
 | Mode labels | Jump to the next layer of that mode. |
-| Labels | Pulled-out labels with leader lines around the chassis, in the manner of the hardware overview drawing. Shown on screens wider than 1180px; the switch under the device hides them. |
+| Help | Toggles the pulled-out labels with leader lines around the chassis, in the manner of the hardware overview drawing. On by default (off when embedded); the chassis scales down to make room. `?` opens the full quick guide. |
 | Light / Dark | Follows the system preference, or `?theme=light` / `?theme=dark` in the URL. The switch under the device stores the choice. |
-| Help | Quick guide. |
+| `?` | Quick guide. |
 
 ## Appearance
 

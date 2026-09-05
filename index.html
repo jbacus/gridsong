@@ -36,16 +36,20 @@
             <button class="fn" data-fn="R3"><i class="cap"></i><span class="tag">R3<small>TRANS</small></span></button>
             <button class="fn" data-fn="R4"><i class="cap"></i><span class="tag">R4<small>VOLUME</small></span></button>
             <button class="fn" data-fn="R5"><i class="cap"></i><span class="tag">R5<small>BLOCK</small></span></button>
-            <div class="power" id="power"><div class="light" id="powerLight"></div><span class="tag">POWER</span></div>
+            <button class="power" id="btnPower" title="Power: switch the instrument off and on"><span class="light" id="powerLight"></span><span class="tag">POWER</span></button>
           </div>
         </div>
         <div class="bottom">
-          <div class="jog-col"><span class="tag arrow">&#9650;</span><div class="jog" id="jog" title="Jog: drag up or down, scroll, or use the arrow keys"></div><span class="tag arrow">&#9660;</span><span class="tag">JOG</span></div>
-          <div class="lcd" id="lcd"></div>
-          <div class="ok-col">
-            <button class="hw round" id="btnOk"><i class="cap"></i><span class="tag">OK</span></button>
-            <button class="hw round" id="btnCancel"><i class="cap"></i><span class="tag">CANCEL</span></button>
+          <div></div>
+          <div class="console">
+            <div class="jog-col"><span class="tag arrow">&#9650;</span><div class="jog" id="jog" title="Jog: drag up or down, scroll, or use the arrow keys"></div><span class="tag arrow">&#9660;</span><span class="tag">JOG</span></div>
+            <div class="lcd" id="lcd"></div>
+            <div class="ok-col">
+              <button class="hw round" id="btnOk"><i class="cap"></i><span class="tag">OK</span></button>
+              <button class="hw round" id="btnCancel"><i class="cap"></i><span class="tag">CANCEL</span></button>
+            </div>
           </div>
+          <div></div>
         </div>
       </div>
     </div>
@@ -53,9 +57,8 @@
   <div class="footer">
     <div class="hint" id="hint"></div>
     <div class="tools">
-      <span class="switch labels"><button class="opt" id="btnLabels" aria-pressed="true" title="Show or hide the control labels">Labels</button></span>
       <span class="switch theme"><button class="opt" data-theme="light" aria-pressed="false">Light</button><span class="sep">/</span><button class="opt" data-theme="dark" aria-pressed="false">Dark</button></span>
-      <span class="switch"><button class="opt" id="btnHelp" title="Quick guide">Help &rarr;</button></span>
+      <span class="switch labels"><button class="opt" id="btnLabels" aria-pressed="true" title="Show or hide the control labels (press ? for the full guide)">Help</button></span>
     </div>
   </div>
   <input type="file" id="fileInput" class="hidden-input" accept="audio/*,.wav,.aif,.aiff,.mp3,.ogg,.json">

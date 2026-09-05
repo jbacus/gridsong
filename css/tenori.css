@@ -73,7 +73,9 @@ button.fn:active .cap, button.hw:active .cap, .hw.down .cap { background: var(--
 .mode .cap { width: 18px; height: 18px; margin-bottom: 3px; border-width: 1px; }
 .mode .tag { font-size: 11px; }
 .mode .n { display: none; }
-.power { margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: 5px; padding-bottom: 10px; }
+.power { margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 6px 0 10px; appearance: none; background: none; border: 0; cursor: pointer; touch-action: none; }
+.power .tag { transition: var(--transition); }
+html.off .power .tag, html.off .tag { color: var(--muted); }
 .power .light { width: 8px; height: 8px; border-radius: 50%; background: var(--hi); transition: var(--transition); }
 .power .light.off { background: var(--line); }
 
@@ -82,17 +84,18 @@ canvas#matrix { display: block; width: 100%; aspect-ratio: 1 / 1; touch-action: 
 
 /* bottom row: scroller, LCD, OK / CANCEL */
 .bottom { display: grid; grid-template-columns: 66px 1fr 66px; gap: 12px; align-items: center; margin-top: 2px; }
+.console { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 0 2px; }
 .jog-col { display: flex; flex-direction: column; align-items: center; gap: 3px; }
 .jog-col .arrow { font-size: 8px; color: var(--muted); }
-.jog { width: 26px; height: 84px; position: relative; cursor: ns-resize; touch-action: none; background: var(--bg); border: 1.5px solid var(--fg); }
+.jog { width: 48px; height: 84px; position: relative; cursor: ns-resize; touch-action: none; background: var(--bg); border: 1.5px solid var(--fg); }
 .jog::before { content: ""; position: absolute; inset: 3px; background: var(--fg);
   -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='4' height='6'><rect y='0' width='4' height='1.5'/></svg>") 0 var(--roll, 0px) / 4px 6px repeat;
   mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='4' height='6'><rect y='0' width='4' height='1.5'/></svg>") 0 var(--roll, 0px) / 4px 6px repeat; }
-.lcd { justify-self: center; background: var(--bg); color: var(--fg); border: 1.5px solid var(--fg); padding: 6px 12px;
+.lcd { background: var(--bg); color: var(--fg); border: 1.5px solid var(--fg); padding: 6px 12px;
   font-family: var(--font); font-size: 13px; line-height: 1.3; white-space: pre; letter-spacing: 0; min-width: 26ch; }
 .lcd .sel { background: var(--fg); color: var(--bg); }
 .lcd .dim { opacity: .55; }
-.ok-col { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.ok-col { display: flex; align-items: flex-start; gap: 16px; }
 .hw.round .cap { width: 26px; height: 26px; }
 
 /* ---- footer under the chassis: hint prose, text switches --------------------------------------- */
@@ -104,7 +107,7 @@ canvas#matrix { display: block; width: 100%; aspect-ratio: 1 / 1; touch-action: 
 .opt { appearance: none; background: none; border: 0; padding: 0; cursor: pointer; color: var(--muted); text-decoration: none; transition: var(--transition); letter-spacing: inherit; text-transform: inherit; font-weight: inherit; }
 .opt:hover { opacity: .5; }
 .opt.on, .opt[aria-pressed="true"] { color: var(--fg); text-decoration: underline; text-underline-offset: 3px; }
-html.embed .switch.labels, html.narrow .switch.labels { display: none; }
+html.narrow .switch.labels { display: none; }
 .kbd { display: inline-block; border: 1px solid var(--line); padding: 0 4px; font-size: 11px; font-family: var(--font); color: var(--fg); margin: 0 1px; line-height: 1.4; }
 
 /* ---- help overlay ------------------------------------------------------------------------------ */

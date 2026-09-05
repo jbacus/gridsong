@@ -12,7 +12,7 @@
 
   const ui = {
     fn: null, fnLatched: false, fnOverlay: null, fnDown: 0, fnUsed: false, fnKey: false,
-    pointers: new Map(), lastInput: Date.now(), audioReady: false, jogAngle: 0, lcdHtml: '', hintText: '', clearTimer: null, clearFired: false,
+    pointers: new Map(), lastInput: Date.now(), audioReady: false, jogAngle: 0, lcdHtml: '', hintText: '', clearTimer: null, clearFired: false, off: false,
     touch() { this.lastInput = Date.now(); },
     pickFile(accept, cb) { const inp = $('fileInput'); inp.accept = accept; inp.value = ''; inp.onchange = () => { if (inp.files[0]) cb(inp.files[0]); }; inp.click(); },
     download(name, data) {
@@ -27,7 +27,7 @@
     if (audio.ensure()) { ui.audioReady = true; engine.syncAudio(); engine.resync(); }
   }
   function wake() {
-    ui.touch();
+    ui.touch(); if (ui.off) return true;
     if (engine.interior) { engine.stopInterior(); return true; }
     if (engine.powerSave) { engine.stopPowerSave(); return true; }
     return false;
@@ -81,9 +81,20 @@
   $('btnCancel').addEventListener('pointerdown', (ev) => { ev.preventDefault(); pressCancel(); });
   $('btnClear').addEventListener('pointerdown', (ev) => { ev.preventDefault(); clearDown(); });
   ['pointerup', 'pointercancel', 'pointerleave'].forEach((t) => $('btnClear').addEventListener(t, () => { if (ui.clearTimer) clearUp(); }));
-  $('btnHelp').addEventListener('click', () => { $('help').hidden = false; });
   $('btnHelpClose').addEventListener('click', () => { $('help').hidden = true; });
   $('help').addEventListener('click', (ev) => { if (ev.target === $('help')) $('help').hidden = true; });
+
+  // ---- power ------------------------------------------------------------------------------------
+  // Stands in for the STANDBY/ON switch: off blanks the matrix and display and ignores every other control.
+  $('btnPower').addEventListener('click', () => {
+    ensureAudio(); ui.touch();
+    if (!ui.off) {
+      if (engine.interior) engine.stopInterior(); if (engine.powerSave) engine.stopPowerSave();
+      if (engine.playing) engine.togglePause(); engine.stopPushAll(); setFn(null);
+      ui.off = true;
+    } else { ui.off = false; if (!engine.playing) engine.togglePause(); }
+    document.documentElement.classList.toggle('off', ui.off);
+  });
 
   // ---- jog scroller ---------------------------------------------------------------------------
   const jogEl = $('jog');
@@ -107,6 +118,7 @@
   // ---- keyboard --------------------------------------------------------------------------------
   window.addEventListener('keydown', (ev) => {
     if (ev.target && /INPUT|TEXTAREA/.test(ev.target.tagName)) return;
+    if (ui.off) return;
     if (!$('help').hidden) { if (ev.key === 'Escape' || ev.key === '?') $('help').hidden = true; return; }
     if (menu.screen && menu.screen.type === 'name' && menu.keyChar(ev.key)) { ev.preventDefault(); return; }
     if (FN_KEYS[ev.code]) { ev.preventDefault(); if (!ev.repeat) { ensureAudio(); if (wake()) return; if (ui.fn === FN_KEYS[ev.code] && ui.fnLatched) return; setFn(FN_KEYS[ev.code], false); ui.fnKey = true; } return; }
@@ -205,7 +217,7 @@
   function computeLeds(now) {
     lum.fill(0);
     const st = engine.state; const i = st.currentLayer; const mode = TN.MODE_OF_LAYER[i]; const rt = engine.rt[i];
-    if (engine.powerSave) return;
+    if (engine.powerSave || ui.off) return;
     if (engine.interior && engine.interior.withClock) { drawClock(); if (!engine.interior.withSong) return; }
     const ov = activeOverlay();
     if (ov && !engine.interior) { ov.draw(lum); return; }
@@ -304,6 +316,7 @@
   function fmtTime(ms) { const s = Math.floor(ms / 1000); return pad2(Math.floor(s / 3600)) + ':' + pad2(Math.floor(s / 60) % 60) + ':' + pad2(s % 60); }
   function statusLines() {
     const st = engine.state; const i = st.currentLayer; const now = new Date();
+    if (ui.off) return ['', '', '', ''];
     if (engine.msg && engine.msg.until > Date.now()) { const l = engine.msg.text.split('\n'); return ['', ' ' + (l[0] || ''), ' ' + (l[1] || ''), '']; }
     if (engine.playback) { const s = engine.playback.song; return ['Song:', ' "' + (s.name || 'SONG') + '"', ' ' + (s.composer || 'NO NAME'), ' PLAY ' + fmtTime(Date.now() - engine.playback.start) + '  [OK]stop']; }
     if (engine.powerSave) return ['', ' Power Save...', '', ''];
@@ -317,7 +330,7 @@
   }
   function updateLcd() {
     let lines;
-    if (ui.fn && ui.fnOverlay) lines = ui.fnOverlay.lcd(); else if (ui.fn) lines = ['Loop Speed', ' Layer[' + pad2(engine.state.currentLayer + 1) + ']', ' not available in', ' Push Mode'];
+    if (ui.off) lines = ['', '', '', '']; else if (ui.fn && ui.fnOverlay) lines = ui.fnOverlay.lcd(); else if (ui.fn) lines = ['Loop Speed', ' Layer[' + pad2(engine.state.currentLayer + 1) + ']', ' not available in', ' Push Mode'];
     else lines = menu.lines() || statusLines();
     const html = lines.slice(0, 4).map((t) => esc(String(t).padEnd(20))).join('\n');
     if (html !== ui.lcdHtml) { ui.lcdHtml = html; lcdEl.innerHTML = html; }
@@ -342,10 +355,11 @@
   function updateChrome() {
     const st = engine.state; const mode = TN.MODE_OF_LAYER[st.currentLayer];
     modesEl.querySelectorAll('.mode').forEach((b) => b.classList.toggle('on', b.dataset.mode === mode));
-    $('btnOk').classList.toggle('on', !engine.playing && !menu.open);
-    $('powerLight').classList.toggle('off', !!engine.powerSave);
+    $('btnOk').classList.toggle('on', !engine.playing && !menu.open && !ui.off);
+    $('powerLight').classList.toggle('off', !!engine.powerSave || ui.off);
     let hint;
-    if (!ui.audioReady) hint = 'Click or tap anywhere on the instrument to enable sound.';
+    if (ui.off) hint = 'Off. Press <b>POWER</b> to switch the instrument on.';
+    else if (!ui.audioReady) hint = 'Click or tap anywhere on the instrument to enable sound.';
     else if (engine.interior) hint = 'Interior mode. Press any button to return.';
     else if (ui.fn === 'L4') hint = mode === 'random' ? 'Rotation: stroke a circle around the matrix to spin the shape. Press the same LED twice to stop.' : 'Loop point: upper half sets TOP, lower half sets END. Jog slides the range.';
     else if (ui.fn) hint = FN_HINTS[ui.fn];

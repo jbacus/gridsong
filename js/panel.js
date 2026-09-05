@@ -11,8 +11,9 @@
   const embedded = (function () { try { return window.self !== window.top; } catch (e) { return true; } })() || /[?&]embed\b/.test(location.search);
   if (embedded) html.classList.add('embed');
 
-  let labelsOn = true;
-  try { labelsOn = localStorage.getItem('tenori.labels') !== 'off'; } catch (e) { /* private mode */ }
+  // Labels default on when standalone and off when embedded; the HELP switch under the chassis toggles them.
+  let labelsOn = !embedded;
+  try { const v = localStorage.getItem('tenori.help'); if (v === 'on' || v === 'off') labelsOn = v === 'on'; } catch (e) { /* private mode */ }
 
   // side: which margin the label sits in. k: the printed key on the body. web: not on the original instrument.
   const CALLOUTS = [
@@ -29,7 +30,7 @@
     { sel: '[data-fn=R4]', side: 'right', k: 'R4', text: 'Changing the layer volume' },
     { sel: '[data-fn=R5]', side: 'right', k: 'R5', text: 'Switching blocks', sub: 'Sixteen blocks of sixteen layers' },
     { sel: '#matrixWrap', side: 'right', text: 'LED buttons', sub: '16 × 16 matrix', at: 0.62 },
-    { sel: '#power', side: 'right', text: 'Power indicator', sub: 'Dims in power save' },
+    { sel: '#btnPower', side: 'right', text: 'Power', sub: 'Press to switch the instrument off and on' },
     { sel: '#btnOk', side: 'right', k: 'OK', text: 'Play, pause, confirm' },
     { sel: '#btnCancel', side: 'right', k: 'CANCEL', text: 'Back, release a button' },
     { sel: '#btnClear', side: 'top', k: 'CLEAR', text: 'Clear layer · hold for all' },
@@ -93,9 +94,14 @@
   function layout() {
     raf = 0;
     const vw = window.innerWidth, vh = window.innerHeight;
-    const showLabels = !embedded && labelsOn && vw >= 1180;
-    html.classList.toggle('labels', showLabels); html.classList.toggle('narrow', vw < 1180);
+    const showLabels = labelsOn && vw >= 700;
+    html.classList.toggle('labels', showLabels); html.classList.toggle('narrow', vw < 700);
     btnLabels.setAttribute('aria-pressed', String(labelsOn));
+    if (showLabels) {
+      // Side margins are as wide as the widest label plus its leader, so nothing is clipped at the viewport edge.
+      let maxW = 0; CALLOUTS.forEach((c) => { if (c.side === 'left' || c.side === 'right') maxW = Math.max(maxW, c.label.offsetWidth); });
+      stage.style.setProperty('--label-pad', Math.min(Math.max(maxW + 36, 200), Math.floor(vw * 0.36)) + 'px');
+    }
     const cs = getComputedStyle(stage);
     const availW = vw - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - 24;
     wrap.style.transform = ''; wrap.style.height = '';
@@ -110,7 +116,7 @@
   function schedule() { if (!raf) raf = requestAnimationFrame(layout); }
   window.addEventListener('resize', schedule);
   if (window.ResizeObserver) new ResizeObserver(schedule).observe(footer);
-  btnLabels.addEventListener('click', () => { labelsOn = !labelsOn; try { localStorage.setItem('tenori.labels', labelsOn ? 'on' : 'off'); } catch (e) { /* ignore */ } layout(); });
+  btnLabels.addEventListener('click', () => { labelsOn = !labelsOn; try { localStorage.setItem('tenori.help', labelsOn ? 'on' : 'off'); } catch (e) { /* ignore */ } layout(); });
 
   // Light / dark: the house-style text switch. The class is applied before paint by the inline script in index.html.
   const themeBtns = document.querySelectorAll('[data-theme]');
