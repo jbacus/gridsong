@@ -4,51 +4,65 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Gridsong</title>
-<link rel="stylesheet" href="css/tenori.css?v=2">
+<script>(function(){var t=null;try{var m=/[?&]theme=(light|dark)/.exec(location.search);t=m?m[1]:localStorage.getItem('commonplace.theme');}catch(e){}if(t!=='light'&&t!=='dark')t=(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';if(t==='dark')document.documentElement.classList.add('theme-dark');})();</script>
+<link rel="preload" href="fonts/iAWriterQuattroS-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/tenori.css?v=3">
 </head>
 <body>
 <div id="app">
-  <div class="device">
-    <div class="top"><div class="lcd" id="lcd"></div></div>
-    <div class="main">
-      <div class="side">
-        <button class="fn" data-fn="L1">L1<small>INST</small></button>
-        <button class="fn" data-fn="L2">L2<small>LEN</small></button>
-        <button class="fn" data-fn="L3">L3<small>OCT</small></button>
-        <button class="fn" data-fn="L4">L4<small>LOOP</small></button>
-        <button class="fn" data-fn="L5">L5<small>SPD</small></button>
-        <div class="gap"></div>
-        <div class="modes" id="modes"></div>
-      </div>
-      <div class="matrix-wrap"><canvas id="matrix" width="800" height="800"></canvas></div>
-      <div class="side">
-        <button class="fn" data-fn="R1">R1<small>LAYER</small></button>
-        <button class="fn" data-fn="R2">R2<small>TEMPO</small></button>
-        <button class="fn" data-fn="R3">R3<small>TRANS</small></button>
-        <button class="fn" data-fn="R4">R4<small>VOL</small></button>
-        <button class="fn" data-fn="R5">R5<small>BLOCK</small></button>
-        <div class="gap"></div>
-        <div class="power"><div class="light" id="powerLight"></div>POWER</div>
+  <div id="stage">
+    <svg id="leaders" aria-hidden="true"></svg>
+    <div id="labels" aria-hidden="true"></div>
+    <div class="device-wrap" id="deviceWrap">
+      <div class="device">
+        <div class="top">
+          <span class="model">GS-16</span>
+          <button class="hw round clear" id="btnClear" title="CLEAR: short press clears the layer, hold clears all blocks"><i class="cap"></i><span class="tag">CLEAR</span></button>
+          <span class="brand">GRIDSONG</span>
+        </div>
+        <div class="main">
+          <div class="side left">
+            <button class="fn" data-fn="L1"><i class="cap"></i><span class="tag">L1<small>VOICE</small></span></button>
+            <button class="fn" data-fn="L2"><i class="cap"></i><span class="tag">L2<small>LENGTH</small></span></button>
+            <button class="fn" data-fn="L3"><i class="cap"></i><span class="tag">L3<small>OCTAVE</small></span></button>
+            <button class="fn" data-fn="L4"><i class="cap"></i><span class="tag">L4<small>LOOP</small></span></button>
+            <button class="fn" data-fn="L5"><i class="cap"></i><span class="tag">L5<small>SPEED</small></span></button>
+            <div class="modes" id="modes"></div>
+          </div>
+          <div class="matrix-wrap" id="matrixWrap"><canvas id="matrix" width="800" height="800"></canvas></div>
+          <div class="side right">
+            <button class="fn" data-fn="R1"><i class="cap"></i><span class="tag">R1<small>LAYER</small></span></button>
+            <button class="fn" data-fn="R2"><i class="cap"></i><span class="tag">R2<small>TEMPO</small></span></button>
+            <button class="fn" data-fn="R3"><i class="cap"></i><span class="tag">R3<small>TRANS</small></span></button>
+            <button class="fn" data-fn="R4"><i class="cap"></i><span class="tag">R4<small>VOLUME</small></span></button>
+            <button class="fn" data-fn="R5"><i class="cap"></i><span class="tag">R5<small>BLOCK</small></span></button>
+            <div class="power" id="power"><div class="light" id="powerLight"></div><span class="tag">POWER</span></div>
+          </div>
+        </div>
+        <div class="bottom">
+          <div class="jog-col"><span class="tag arrow">&#9650;</span><div class="jog" id="jog" title="Jog: drag up or down, scroll, or use the arrow keys"></div><span class="tag arrow">&#9660;</span><span class="tag">JOG</span></div>
+          <div class="lcd" id="lcd"></div>
+          <div class="ok-col">
+            <button class="hw round" id="btnOk"><i class="cap"></i><span class="tag">OK</span></button>
+            <button class="hw round" id="btnCancel"><i class="cap"></i><span class="tag">CANCEL</span></button>
+          </div>
+        </div>
       </div>
     </div>
-    <div class="bottom">
-      <div></div>
-      <div class="transport">
-        <div><div class="jog" id="jog" title="Jog dial: drag, scroll, or arrow keys"><div class="knob" id="knob"></div><div class="label">JOG</div></div><div class="jog-caption">NAVIGATE</div></div>
-        <button class="round" id="btnOk">OK</button>
-        <button class="round" id="btnCancel">CANCEL</button>
-        <button class="round clear" id="btnClear">CLEAR</button>
-      </div>
-      <div></div>
-    </div>
+  </div>
+  <div class="footer">
     <div class="hint" id="hint"></div>
-    <button class="help-btn" id="btnHelp" title="Quick guide">?</button>
+    <div class="tools">
+      <span class="switch labels"><button class="opt" id="btnLabels" aria-pressed="true" title="Show or hide the control labels">Labels</button></span>
+      <span class="switch theme"><button class="opt" data-theme="light" aria-pressed="false">Light</button><span class="sep">/</span><button class="opt" data-theme="dark" aria-pressed="false">Dark</button></span>
+      <span class="switch"><button class="opt" id="btnHelp" title="Quick guide">Help &rarr;</button></span>
+    </div>
   </div>
   <input type="file" id="fileInput" class="hidden-input" accept="audio/*,.wav,.aif,.aiff,.mp3,.ogg,.json">
 </div>
 <div class="overlay" id="help" hidden>
   <div class="card">
-    <button class="close" id="btnHelpClose">CLOSE</button>
+    <button class="close" id="btnHelpClose">Close &rarr;</button>
     <h1>GRIDSONG</h1>
     <div>A browser matrix sequencer inspired by the Yamaha TENORI-ON. Gridsong is an independent project and is not affiliated with or endorsed by Yamaha; TENORI-ON is a trademark of Yamaha Corporation. Sixteen layers, sixteen blocks, six performance modes, and the ten function buttons. Sounds are synthesized with Web Audio, so voices are impressions of the originals rather than samples of the original instrument.</div>
     <h2>Performance modes (fixed per layer)</h2>
@@ -83,10 +97,11 @@
     </table>
   </div>
 </div>
-<script src="js/voices.js?v=2"></script>
-<script src="js/audio.js?v=2"></script>
-<script src="js/engine.js?v=2"></script>
-<script src="js/menu.js?v=2"></script>
-<script src="js/ui.js?v=2"></script>
+<script src="js/voices.js?v=3"></script>
+<script src="js/audio.js?v=3"></script>
+<script src="js/engine.js?v=3"></script>
+<script src="js/menu.js?v=3"></script>
+<script src="js/ui.js?v=3"></script>
+<script src="js/panel.js?v=3"></script>
 </body>
 </html>
