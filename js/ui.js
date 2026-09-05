@@ -6,13 +6,13 @@
   const audio = new TN.AudioEngine(); const engine = new TN.Engine(audio);
   const $ = (id) => document.getElementById(id);
   const canvas = $('matrix'); const ctx2d = canvas.getContext('2d');
-  const lcdEl = $('lcd'); const hintEl = $('hint'); const knob = $('knob');
+  const lcdEl = $('lcd'); const hintEl = $('hint');
   const FN_KEYS = { KeyQ: 'L1', KeyW: 'L2', KeyE: 'L3', KeyR: 'L4', KeyT: 'L5', KeyY: 'R1', KeyU: 'R2', KeyI: 'R3', KeyO: 'R4', KeyP: 'R5' };
   const MODES = [['score', 'SCORE', 'L1-7'], ['random', 'RANDOM', 'L8-11'], ['draw', 'DRAW', 'L12-13'], ['bounce', 'BOUNCE', 'L14'], ['push', 'PUSH', 'L15'], ['solo', 'SOLO', 'L16']];
 
   const ui = {
     fn: null, fnLatched: false, fnOverlay: null, fnDown: 0, fnUsed: false, fnKey: false,
-    pointers: new Map(), lastInput: Date.now(), audioReady: false, jogAngle: 0, lcdHtml: '', hintText: '', clearTimer: null, clearFired: false,
+    pointers: new Map(), lastInput: Date.now(), audioReady: false, jogAngle: 0, lcdHtml: '', hintText: '', clearTimer: null, clearFired: false, off: false,
     touch() { this.lastInput = Date.now(); },
     pickFile(accept, cb) { const inp = $('fileInput'); inp.accept = accept; inp.value = ''; inp.onchange = () => { if (inp.files[0]) cb(inp.files[0]); }; inp.click(); },
     download(name, data) {
@@ -27,7 +27,7 @@
     if (audio.ensure()) { ui.audioReady = true; engine.syncAudio(); engine.resync(); }
   }
   function wake() {
-    ui.touch();
+    ui.touch(); if (ui.off) return true;
     if (engine.interior) { engine.stopInterior(); return true; }
     if (engine.powerSave) { engine.stopPowerSave(); return true; }
     return false;
@@ -54,7 +54,8 @@
   // ---- mode buttons -------------------------------------------------------------------------
   const modesEl = $('modes');
   MODES.forEach(([mode, label, range]) => {
-    const b = document.createElement('div'); b.className = 'mode'; b.dataset.mode = mode; b.innerHTML = label + '<span class="n">' + range + '</span>';
+    const b = document.createElement('div'); b.className = 'mode'; b.dataset.mode = mode; b.title = label + ' mode (layers ' + range.replace('L', '') + ')';
+    b.innerHTML = '<i class="cap"></i><span class="tag">' + label + '<span class="n">' + range + '</span></span>';
     b.addEventListener('pointerdown', (ev) => {
       ev.preventDefault(); ensureAudio(); if (wake()) return;
       const layers = TN.MODE_OF_LAYER.map((m, i) => (m === mode ? i : -1)).filter((i) => i >= 0);
@@ -80,31 +81,44 @@
   $('btnCancel').addEventListener('pointerdown', (ev) => { ev.preventDefault(); pressCancel(); });
   $('btnClear').addEventListener('pointerdown', (ev) => { ev.preventDefault(); clearDown(); });
   ['pointerup', 'pointercancel', 'pointerleave'].forEach((t) => $('btnClear').addEventListener(t, () => { if (ui.clearTimer) clearUp(); }));
-  $('btnHelp').addEventListener('click', () => { $('help').hidden = false; });
   $('btnHelpClose').addEventListener('click', () => { $('help').hidden = true; });
   $('help').addEventListener('click', (ev) => { if (ev.target === $('help')) $('help').hidden = true; });
 
-  // ---- jog dial ------------------------------------------------------------------------------
+  // ---- power ------------------------------------------------------------------------------------
+  // Stands in for the STANDBY/ON switch: off blanks the matrix and display and ignores every other control.
+  $('btnPower').addEventListener('click', () => {
+    ensureAudio(); ui.touch();
+    if (!ui.off) {
+      if (engine.interior) engine.stopInterior(); if (engine.powerSave) engine.stopPowerSave();
+      if (engine.playing) engine.togglePause(); engine.stopPushAll(); setFn(null);
+      ui.off = true;
+    } else { ui.off = false; if (!engine.playing) engine.togglePause(); }
+    document.documentElement.classList.toggle('off', ui.off);
+  });
+
+  // ---- jog scroller ---------------------------------------------------------------------------
+  const jogEl = $('jog');
   function jog(d) {
     ensureAudio(); if (wake()) return;
-    ui.jogAngle += d * 18; knob.style.transform = 'rotate(' + ui.jogAngle + 'deg)';
+    ui.jogAngle += d * 3; jogEl.style.setProperty('--roll', ui.jogAngle + 'px');
     if (ui.fn && ui.fnOverlay) { ui.fnOverlay.jog(d); ui.fnUsed = true; return; }
     if (!menu.open) { menu.openMain(); return; }
     menu.jog(d);
   }
-  const jogEl = $('jog'); let jogDrag = null;
+  let jogDrag = null;
   jogEl.addEventListener('wheel', (ev) => { ev.preventDefault(); jog(ev.deltaY > 0 ? 1 : -1); }, { passive: false });
-  jogEl.addEventListener('pointerdown', (ev) => { ev.preventDefault(); jogEl.setPointerCapture(ev.pointerId); const r = jogEl.getBoundingClientRect(); const cx = r.left + r.width / 2, cy = r.top + r.height / 2; jogDrag = { cx, cy, last: Math.atan2(ev.clientY - cy, ev.clientX - cx), acc: 0 }; });
+  // A thumbwheel seen edge-on: drag up or down, one step per 12 px. Dragging down moves down the menu.
+  jogEl.addEventListener('pointerdown', (ev) => { ev.preventDefault(); try { jogEl.setPointerCapture(ev.pointerId); } catch (e) { /* synthetic pointer */ } jogDrag = { y: ev.clientY, acc: 0 }; });
   jogEl.addEventListener('pointermove', (ev) => {
-    if (!jogDrag) return; const a = Math.atan2(ev.clientY - jogDrag.cy, ev.clientX - jogDrag.cx); let d = a - jogDrag.last; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI;
-    jogDrag.last = a; jogDrag.acc += d; const stepA = Math.PI / 10;
-    while (jogDrag.acc > stepA) { jogDrag.acc -= stepA; jog(1); } while (jogDrag.acc < -stepA) { jogDrag.acc += stepA; jog(-1); }
+    if (!jogDrag) return; jogDrag.acc += ev.clientY - jogDrag.y; jogDrag.y = ev.clientY; const step = 12;
+    while (jogDrag.acc > step) { jogDrag.acc -= step; jog(1); } while (jogDrag.acc < -step) { jogDrag.acc += step; jog(-1); }
   });
   ['pointerup', 'pointercancel'].forEach((t) => jogEl.addEventListener(t, () => { jogDrag = null; }));
 
   // ---- keyboard --------------------------------------------------------------------------------
   window.addEventListener('keydown', (ev) => {
     if (ev.target && /INPUT|TEXTAREA/.test(ev.target.tagName)) return;
+    if (ui.off) return;
     if (!$('help').hidden) { if (ev.key === 'Escape' || ev.key === '?') $('help').hidden = true; return; }
     if (menu.screen && menu.screen.type === 'name' && menu.keyChar(ev.key)) { ev.preventDefault(); return; }
     if (FN_KEYS[ev.code]) { ev.preventDefault(); if (!ev.repeat) { ensureAudio(); if (wake()) return; if (ui.fn === FN_KEYS[ev.code] && ui.fnLatched) return; setFn(FN_KEYS[ev.code], false); ui.fnKey = true; } return; }
@@ -203,7 +217,7 @@
   function computeLeds(now) {
     lum.fill(0);
     const st = engine.state; const i = st.currentLayer; const mode = TN.MODE_OF_LAYER[i]; const rt = engine.rt[i];
-    if (engine.powerSave) return;
+    if (engine.powerSave || ui.off) return;
     if (engine.interior && engine.interior.withClock) { drawClock(); if (!engine.interior.withSong) return; }
     const ov = activeOverlay();
     if (ov && !engine.interior) { ov.draw(lum); return; }
@@ -268,18 +282,32 @@
     const dpr = Math.min(2, window.devicePixelRatio || 1); const size = Math.round(canvas.clientWidth * dpr) || 800;
     if (canvas.width !== size) { canvas.width = size; canvas.height = size; }
   }
+  // LED colours come from the theme tokens so the matrix inverts with the page. Re-read when the html class changes.
+  let pal = null, palKey = null;
+  function palette() {
+    const key = document.documentElement.className; if (pal && key === palKey) return pal; palKey = key;
+    const cs = getComputedStyle(document.documentElement); const get = (n) => cs.getPropertyValue(n).trim();
+    const rgb = (h) => { h = h.replace('#', ''); if (h.length === 3) h = h.split('').map((c) => c + c).join(''); return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16)); };
+    pal = { off: get('--led-off') || '#ffffff', ring: get('--led-ring') || '#8a8a8a', offRgb: rgb(get('--led-off') || '#ffffff'), hi: rgb(get('--hi') || '#1f5eff'), hot: rgb(get('--led-hot') || '#dce8ff') };
+    return pal;
+  }
+  const mix = (a, b, t) => 'rgb(' + Math.round(a[0] + (b[0] - a[0]) * t) + ',' + Math.round(a[1] + (b[1] - a[1]) * t) + ',' + Math.round(a[2] + (b[2] - a[2]) * t) + ')';
   function draw() {
-    resize(); const W = canvas.width; const cell = W / 16; const rad = cell * 0.36;
+    resize(); const W = canvas.width; const cell = W / 16; const rad = cell * 0.36; const P = palette(); const hi = P.hi.join(',');
     ctx2d.clearRect(0, 0, W, W);
     for (let r = 0; r < 16; r++) for (let c = 0; c < 16; c++) {
       const v = Math.min(1, lum[r * 16 + c]); const x = (c + 0.5) * cell, y = (15 - r + 0.5) * cell;
-      if (v > 0.05) { ctx2d.fillStyle = 'rgba(255,160,40,' + (v * 0.45).toFixed(3) + ')'; ctx2d.beginPath(); ctx2d.arc(x, y, rad * (1.25 + v * 0.7), 0, 6.283); ctx2d.fill(); }
+      // Flat discs. A lit LED glows: two soft halos, then the cap itself tinted from off through the highlight to near white.
+      if (v > 0.05) {
+        ctx2d.fillStyle = 'rgba(' + hi + ',' + (v * 0.18).toFixed(3) + ')'; ctx2d.beginPath(); ctx2d.arc(x, y, rad * (1.7 + v * 1.1), 0, 6.283); ctx2d.fill();
+        ctx2d.fillStyle = 'rgba(' + hi + ',' + (v * 0.4).toFixed(3) + ')'; ctx2d.beginPath(); ctx2d.arc(x, y, rad * (1.25 + v * 0.5), 0, 6.283); ctx2d.fill();
+      }
       let col;
-      if (v <= 0.02) col = '#3a3129';
-      else if (v < 0.5) { const t = v / 0.5; col = 'rgb(' + Math.round(58 + 197 * t) + ',' + Math.round(49 + 122 * t) + ',' + Math.round(41 - 10 * t) + ')'; }
-      else { const t = (v - 0.5) / 0.5; col = 'rgb(255,' + Math.round(171 + 69 * t) + ',' + Math.round(31 + 159 * t) + ')'; }
+      if (v <= 0.02) col = P.off;
+      else if (v < 0.5) col = mix(P.offRgb, P.hi, v / 0.5);
+      else col = mix(P.hi, P.hot, (v - 0.5) / 0.5);
       ctx2d.fillStyle = col; ctx2d.beginPath(); ctx2d.arc(x, y, rad, 0, 6.283); ctx2d.fill();
-      ctx2d.strokeStyle = 'rgba(0,0,0,.35)'; ctx2d.lineWidth = 1; ctx2d.stroke();
+      ctx2d.strokeStyle = v > 0.05 ? 'rgba(' + hi + ',.9)' : P.ring; ctx2d.lineWidth = v > 0.05 ? 1 : 0.75; ctx2d.stroke();
     }
   }
 
@@ -288,6 +316,7 @@
   function fmtTime(ms) { const s = Math.floor(ms / 1000); return pad2(Math.floor(s / 3600)) + ':' + pad2(Math.floor(s / 60) % 60) + ':' + pad2(s % 60); }
   function statusLines() {
     const st = engine.state; const i = st.currentLayer; const now = new Date();
+    if (ui.off) return ['', '', '', ''];
     if (engine.msg && engine.msg.until > Date.now()) { const l = engine.msg.text.split('\n'); return ['', ' ' + (l[0] || ''), ' ' + (l[1] || ''), '']; }
     if (engine.playback) { const s = engine.playback.song; return ['Song:', ' "' + (s.name || 'SONG') + '"', ' ' + (s.composer || 'NO NAME'), ' PLAY ' + fmtTime(Date.now() - engine.playback.start) + '  [OK]stop']; }
     if (engine.powerSave) return ['', ' Power Save...', '', ''];
@@ -301,7 +330,7 @@
   }
   function updateLcd() {
     let lines;
-    if (ui.fn && ui.fnOverlay) lines = ui.fnOverlay.lcd(); else if (ui.fn) lines = ['Loop Speed', ' Layer[' + pad2(engine.state.currentLayer + 1) + ']', ' not available in', ' Push Mode'];
+    if (ui.off) lines = ['', '', '', '']; else if (ui.fn && ui.fnOverlay) lines = ui.fnOverlay.lcd(); else if (ui.fn) lines = ['Loop Speed', ' Layer[' + pad2(engine.state.currentLayer + 1) + ']', ' not available in', ' Push Mode'];
     else lines = menu.lines() || statusLines();
     const html = lines.slice(0, 4).map((t) => esc(String(t).padEnd(20))).join('\n');
     if (html !== ui.lcdHtml) { ui.lcdHtml = html; lcdEl.innerHTML = html; }
@@ -326,10 +355,11 @@
   function updateChrome() {
     const st = engine.state; const mode = TN.MODE_OF_LAYER[st.currentLayer];
     modesEl.querySelectorAll('.mode').forEach((b) => b.classList.toggle('on', b.dataset.mode === mode));
-    $('btnOk').classList.toggle('on', !engine.playing && !menu.open);
-    $('powerLight').classList.toggle('off', !!engine.powerSave);
+    $('btnOk').classList.toggle('on', !engine.playing && !menu.open && !ui.off);
+    $('powerLight').classList.toggle('off', !!engine.powerSave || ui.off);
     let hint;
-    if (!ui.audioReady) hint = 'Click or tap anywhere on the instrument to enable sound.';
+    if (ui.off) hint = 'Off. Press <b>POWER</b> to switch the instrument on.';
+    else if (!ui.audioReady) hint = 'Click or tap anywhere on the instrument to enable sound.';
     else if (engine.interior) hint = 'Interior mode. Press any button to return.';
     else if (ui.fn === 'L4') hint = mode === 'random' ? 'Rotation: stroke a circle around the matrix to spin the shape. Press the same LED twice to stop.' : 'Loop point: upper half sets TOP, lower half sets END. Jog slides the range.';
     else if (ui.fn) hint = FN_HINTS[ui.fn];

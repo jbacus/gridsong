@@ -25,10 +25,20 @@ Gridsong is an independent project. It is not affiliated with, endorsed by, or s
 | --- | --- |
 | LED buttons | Click, tap or drag on the matrix. Multi-touch works for Push and Solo. Short press auditions, holding past Push Sensitivity enters a note. |
 | L1-L5 / R1-R5 | Click to latch (click again or CANCEL to release), or hold `Q W E R T` / `Y U I O P`. |
-| Jog dial | Drag, scroll wheel, or arrow keys. Turn it on the status display to open the menu; it also fine-adjusts a held function button. |
+| Jog dial | An up/down scroller: drag it, use the scroll wheel, or the arrow keys. Move it on the status display to open the menu; it also fine-adjusts a held function button. |
 | OK / CANCEL / CLEAR | Buttons, or `Enter`/`Space`, `Esc`, `Backspace` (hold to clear all blocks). |
 | Mode labels | Jump to the next layer of that mode. |
+| Help | Toggles the pulled-out labels with leader lines around the chassis, in the manner of the hardware overview drawing. On by default (off when embedded); the chassis scales down to make room. `?` opens the full quick guide. |
+| Light / Dark | Follows the system preference, or `?theme=light` / `?theme=dark` in the URL. The switch under the device stores the choice. |
 | `?` | Quick guide. |
+
+## Appearance
+
+The chassis follows the original's arrangement: CLEAR at the top, five round function buttons down each side, the jog scroller, display and OK / CANCEL along the bottom. Non-functional hardware (speakers, card slot, connectors) is left off. It is drawn in the Commonplace house style: iA Writer Quattro (self-hosted in `fonts/`, SIL Open Font License), flat black-on-white (or white-on-black) line drawing with no grey fills, and a true light/dark inversion. Blue is the one highlight, for lit LEDs, latched buttons and the label leaders.
+
+The six mode buttons under L1-L5 are not on the hardware; they are shortcuts that jump to the next layer of that mode.
+
+When the page runs inside an iframe (or with `?embed` in the URL) the chassis scales to fit the frame, so an embed of any size shows the whole instrument. `js/panel.js` handles the scaling, the labels and the theme switch.
 
 ## Deviations from the original instrument
 
@@ -46,6 +56,6 @@ Plain HTML, CSS and JavaScript in `index.html`, `css/` and `js/`. Serve the fold
 python3 -m http.server 8080
 ```
 
-`js/voices.js` holds the voice list, defaults, scales and patch generation. `js/audio.js` is the Web Audio tone generator. `js/engine.js` is the state model, transport and the six modes. `js/menu.js` is the LCD menu and the LED setting displays. `js/ui.js` renders and handles input.
+`js/voices.js` holds the voice list, defaults, scales and patch generation. `js/audio.js` is the Web Audio tone generator. `js/engine.js` is the state model, transport and the six modes. `js/menu.js` is the LCD menu and the LED setting displays. `js/ui.js` renders and handles input. `js/panel.js` fits the chassis to the viewport, draws the labels and runs the theme switch.
 
 The GitHub Actions workflow in `.github/workflows/pages.yml` syntax-checks the scripts and deploys the repository root to GitHub Pages on every push to `main`.
